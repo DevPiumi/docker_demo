@@ -1,0 +1,13 @@
+langchain
+langchain-community
+openai
+fastapi
+uvicorn
+requests
+jupyter
+
+
+
+
+
+# and any other packages you use in the notebook
