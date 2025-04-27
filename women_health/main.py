@@ -12,19 +12,20 @@ from . import server_apis
 
 app = FastAPI()
 
-from langchain.chat_models import ChatOpenAI
-from langchain import LLMChain
+#from langchain.chat_models import ChatOpenAI
+#from langchain import LLMChain
+from langchain_openai import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
+from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chains.sequential import SequentialChain
-
 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-
+# Set up the server URL and email
 email = "ziafigover@gmail.com"
         
 api_url = f'{server_apis.SERVER_URL}/mobile-api-100-recommendation-input/{email}'  
@@ -50,27 +51,14 @@ API_URL_Women = f'{server_apis.SERVER_URL}/mobile-api-100-recommendation-input-w
 women_response = server_apis.fetch_data_with_url(API_URL_Women)
 women_data = women_response if isinstance(women_response, str) else json.dumps(women_response)
 
-
-
-
-
-#women_data
-#user_data
-#context_user_data
-
-
-
-
-
+# Define the prompts
 cycle_prompt = PromptTemplate(
    input_variables=["cycle_context"],
    template="""
 You are a health assistant predicting a woman's next menstrual period and cycle phase.
 
-
 Cycle data:
 {cycle_context}
-
 
 Possible Phases:
 - Last period date
@@ -78,21 +66,28 @@ Possible Phases:
 - Next period start date
 - Current phase (e.g., follicular, ovulation, luteal, menstruation)
 
+Instructions:
+- Predict the current phase: Menstrual 🌧️, Follicular 🌱, Ovulation 🌸, or Luteal 🔥.
+- Write a friendly, motivating paragraph following this pattern:
+  - Start with the current phase name and an emoji"
+  - Briefly describe the biological event
+  - Explain typical energy levels ⚡, mood changes 💃, and behaviors
+  - Recommend ideal activities
 
- {{
-   "Period_cycle": "Return only the phase name: Menstrual, Follicular, Ovulation, or Luteal ? output prediction.",
-   "Explanition": "What is the prdeicted cycle phase and what sysmtoms could expect good or bad for this phase?",
- }}
+Return the result strictly in the following JSON format:
 
-
+```json
+{{
+  "Period_cycle": "Menstrual, Follicular, Ovulation, or Luteal",
+  "Explanation": "Write a friendly, emoji-rich paragraph exactly following the described pattern."
+}}
 
 """
 )
 
 
 
-
-
+# Define the second prompt for personalized recommendations
 rec_prompt = PromptTemplate(
    input_variables=["cycle_phase", "user_profile"],
    template="""
@@ -101,7 +96,7 @@ Here is her recent lifestyle and wellness data:
 {user_profile}
 
 
-Based on this, return a JSON array with 3 structured daily suggestions for the {cycle_phase} phase. Each suggestion should include:
+Based on this, return a JSON array with 2 structured daily suggestions for the {cycle_phase} phase (1st recommendation related well being in this phase and 2nd recommendation related work productivity). Each suggestion should include:
 - "title": A short title
 - "why": Explanation why it's important with more details and emojies
 - "how": How to implement it with more details and emojies
@@ -113,22 +108,16 @@ Only return a valid JSON array like this:
 
 [
  {{
-   "title": "Breifly explain the recommendation title",
-   "why": "Breifly explain the recommendation why it is important and provide data as references",
-   "how": "Breifly explain the recommendation how to implement it",
-   "try": "Breifly explain the approach time implementing the recommendation"
+   "title": "Breifly explain the recommendation title related well being in this phase",
+   "why": "Breifly explain the recommendation why it is important and provide data as references related well being in this phase",
+   "how": "Breifly explain the recommendation how to implement it related well being in this phase",
+   "try": "Breifly explain the approach time implementing the recommendation related well being in this phase"
  }},
  {{
-   "title": "Breifly explain the recommendation title",
-   "why": "Breifly explain the recommendation why it is important and provide data as references",
-   "how": "Breifly explain the recommendation how to implement it",
-   "try": "Breifly explain the approach time implementing the recommendation"
- }},
- {{
-  "title": "Breifly explain the recommendation title",
-   "why": "Breifly explain the recommendation why it is important and provide data as references",
-   "how": "Breifly explain the recommendation how to implement it",
-   "try": "Breifly explain the approach time implementing the recommendation"
+   "title": "Breifly explain the recommendation title related work productivity",
+   "why": "Breifly explain the recommendation why it is important and provide data as references related work productivity",
+   "how": "Breifly explain the recommendation how to implement it related work productivity",
+   "try": "Breifly explain the approach time implementing the recommendation related work productivity"
  }}
 ]
 """
@@ -210,10 +199,7 @@ print(json.dumps(output, indent=4, ensure_ascii=False))
 #print(recs)
 '''
 
-
-
-
-
+# Define the FastAPI endpoint
 @app.post("/analyze")
 async def analyze(request: Request):
     body = await request.json()
@@ -264,6 +250,7 @@ async def analyze(request: Request):
             "personalized_recommendations": recs_json
         }
 
+    
     except Exception as e:
         logger.error(f"Error: {e}")
         return {"error": str(e)}

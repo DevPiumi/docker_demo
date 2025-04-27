@@ -2,7 +2,7 @@ import requests
 import logging
 
 
-SERVER_URL = "https://live-medtechai.pantheonsite.io/"
+SERVER_URL = "https://test-medtechai.pantheonsite.io/"
 USERNAME = "jinyao"
 PASSWORD = "jinyao-password"
 OPENAI_API_KEY = "sk-svcacct-eduGediAsqkaHqfWZQu_yETmPoWNxuSC6D01X5H9WL0aw5KdgOjimK_kF3gJDT3BlbkFJIsoXFnFRU3M4fYKtINT0V_HxKqhXAIdx0u_7f389Gogw6fEYxvHeR0ORMP5AA"
@@ -17,6 +17,7 @@ def fetch_data_with_url(api_url):
         if response.status_code == 404:
             print("Resource not found at this URL.")
             return "None"
+           
 
         # If not 404, raise any other potential errors
         response.raise_for_status()
