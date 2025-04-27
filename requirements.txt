@@ -5,6 +5,9 @@ fastapi
 uvicorn
 requests
 jupyter
+pydantic
+langchain-openai
+
 
 
 

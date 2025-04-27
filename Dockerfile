@@ -34,6 +34,6 @@ RUN apt-get update && apt-get install -y build-essential gcc \
 COPY women_health ./women_health
 
 
-CMD ["uvicorn", "women_health.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "women_health.main:app", "--host", "0.0.0.0", "--port", "8080"]
 
 
